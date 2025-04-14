@@ -79,6 +79,9 @@ class Crawl4AIServer {
         const headers: Record<string, string> = {};
         if (AUTH_TOKEN) {
             headers['Authorization'] = `Bearer ${AUTH_TOKEN}`;
+            console.error(`Setting Authorization header: Bearer ${AUTH_TOKEN}`);
+        } else {
+            console.error('No AUTH_TOKEN provided');
         }
 
         this.axiosInstance = axios.create({
@@ -148,9 +151,24 @@ class Crawl4AIServer {
                 
                 for (let attempt = 1; attempt <= this.retryCount; attempt++) {
                     try {
-                        response = await this.axiosInstance.post('/crawl_direct', {
+                        // Try using the same approach that worked in our test script
+                        console.error('API_URL:', API_URL);
+                        console.error('AUTH_TOKEN:', AUTH_TOKEN);
+                        
+                        // Create request headers with proper authentication
+                        const requestHeaders: Record<string, string> = {};
+                        if (AUTH_TOKEN) {
+                            requestHeaders['Authorization'] = `Bearer ${AUTH_TOKEN}`;
+                            console.error('Using authentication token from environment');
+                        } else {
+                            console.error('No authentication token provided');
+                        }
+                        
+                        response = await axios.post(`${API_URL}/crawl_direct`, {
                             ...DEFAULT_CONFIG,
                             urls: request.params.arguments.urls
+                        }, {
+                            headers: requestHeaders
                         });
                         break; // If successful, exit the retry loop
                     } catch (error) {
